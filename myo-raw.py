@@ -1,10 +1,16 @@
 '''
 	Original by dzhu
 		https://github.com/dzhu/myo-raw
+
 	Edited by Fernando Cosentino
 		http://www.fernandocosentino.net/pyoconnect
+
 	Edited by Alvaro Villoslada (Alvipe)
 		https://github.com/Alvipe/myo-raw
+
+	Edited by perlinwarp
+		https://github.com/PerlinWarp/Neuro-Breakout
+
 '''
 
 import enum
@@ -22,7 +28,6 @@ def pack(fmt, *args):
 
 def unpack(fmt, *args):
 	return struct.unpack('<' + fmt, *args)
-
 
 def multichr(ords):
 	if sys.version_info[0] >= 3:
@@ -191,7 +196,7 @@ class BT(object):
 class MyoRaw(object):
 	'''Implements the Myo-specific communication protocol.'''
 
-	def __init__(self, tty=None):
+	def __init__(self, tty=None, raw = True, filtered=False):
 		if tty is None:
 			tty = self.detect_tty()
 		if tty is None:
@@ -204,6 +209,8 @@ class MyoRaw(object):
 		self.arm_handlers = []
 		self.pose_handlers = []
 		self.battery_handlers = []
+		self.raw = raw
+		self.filtered = filtered
 
 	def detect_tty(self):
 		for p in comports():
@@ -266,7 +273,7 @@ class MyoRaw(object):
 			# less than 1000, emg_hz is correct. If it is greater, the actual
 			# framerate starts dropping inversely. Also, if this is much less than
 			# 1000, EMG data becomes slower to respond to changes. In conclusion,
-			# 1000 is probably a good value.
+			# 1000 is probably a good value.f
 			C = 1000
 			emg_hz = 50
 			# strength of low-pass filtering of EMG data
@@ -286,7 +293,17 @@ class MyoRaw(object):
 			# enable on/off arm notifications
 			self.write_attr(0x24, b'\x02\x00')
 			# enable EMG notifications
-			self.start_raw()
+			if not(self.raw):
+				# Send the undocumented filtered 50Hz.
+				print("Starting filtered, 0x01")
+				self.start_filtered() # 0x01
+			else:
+				if (self.filtered):
+					print("Starting raw filtered, 0x02")
+					self.start_raw() # 0x02
+				else:
+					print("Starting raw, unfiltered, 0x03")
+					self.start_raw_unfiltered() #0x03
 			# enable battery notifications
 			self.write_attr(0x12, b'\x01\x10')
 
@@ -361,11 +378,20 @@ class MyoRaw(object):
 		self.write_attr(0x19, pack('3B', 9, 1, mode))
 
 	def power_off(self):
+		'''
+		function to power off the Myo Armband (actually, according to the official BLE specification,
+		the 0x04 command puts the Myo into deep sleep, there is no way to completely turn the device off).
+		I think this is a very useful feature since, without this function, you have to wait until the Myo battery is
+		fully discharged, or use the official Myo app for Windows or Mac and turn off the device from there.
+		- Alvaro Villoslada (Alvipe)
+		'''
 		self.write_attr(0x19, b'\x04\x00')
 
 	def start_raw(self):
+		'''
+		Sends 200Hz, non rectified signal.
 
-		''' To get raw EMG signals, we subscribe to the four EMG notification
+		To get raw EMG signals, we subscribe to the four EMG notification
 		characteristics by writing a 0x0100 command to the corresponding handles.
 		'''
 		self.write_attr(0x2c, b'\x01\x00')  # Suscribe to EmgData0Characteristic
@@ -380,8 +406,9 @@ class MyoRaw(object):
 			0x03 -> 3 bytes of payload
 			0x02 -> send 50Hz filtered signals
 			0x01 -> send IMU data streams
-			0x01 -> send classifier events
+			0x01 -> send classifier events or dont (0x00)
 		'''
+		# struct.pack('<5B', 1, 3, emg_mode, imu_mode, classifier_mode)
 		self.write_attr(0x19, b'\x01\x03\x02\x01\x01')
 
 		'''Sending this sequence for v1.0 firmware seems to enable both raw data and
@@ -405,6 +432,44 @@ class MyoRaw(object):
 
 		# self.write_attr(0x28, b'\x01\x00')  # Not needed for raw signals
 		# self.write_attr(0x19, b'\x01\x03\x01\x01\x01')
+
+	def start_filtered(self):
+		'''
+		Sends 50hz filtered and rectified signal.
+
+		By writting a 0x0100 command to handle 0x28, some kind of "hidden" EMG
+		notification characteristic is activated. This characteristic is not
+		listed on the Myo services of the offical BLE specification from Thalmic
+		Labs. Also, in the second line where we tell the Myo to enable EMG and
+		IMU data streams and classifier events, the 0x01 command wich corresponds
+		to the EMG mode is not listed on the myohw_emg_mode_t struct of the Myo
+		BLE specification.
+		These two lines, besides enabling the IMU and the classifier, enable the
+		transmission of a stream of low-pass filtered EMG signals from the eight
+		sensor pods of the Myo armband (the "hidden" mode I mentioned above).
+		Instead of getting the raw EMG signals, we get rectified and smoothed
+		signals, a measure of the amplitude of the EMG (which is useful to have
+		a measure of muscle strength, but are not as useful as a truly raw signal).
+		However this seems to use a data rate of 50Hz.
+		'''
+		# Stop Myo sleeping and disconnecting while sending Filtered data.
+		self.sleep_mode(1)
+
+		self.write_attr(0x28, b'\x01\x00')
+		self.write_attr(0x19, b'\x01\x03\x01\x01\x00')
+
+	def start_raw_unfiltered(self):
+		'''
+		To get raw EMG signals, we subscribe to the four EMG notification
+		characteristics by writing a 0x0100 command to the corresponding handles.
+		'''
+		self.write_attr(0x2c, b'\x01\x00')  # Suscribe to EmgData0Characteristic
+		self.write_attr(0x2f, b'\x01\x00')  # Suscribe to EmgData1Characteristic
+		self.write_attr(0x32, b'\x01\x00')  # Suscribe to EmgData2Characteristic
+		self.write_attr(0x35, b'\x01\x00')  # Suscribe to EmgData3Characteristic
+
+		# struct.pack('<5B', 1, 3, emg_mode, imu_mode, classifier_mode)
+		self.write_attr(0x19, b'\x01\x03\x03\x01\x00')
 
 	def mc_start_collection(self):
 		'''Myo Connect sends this sequence (or a reordering) when starting data
@@ -531,7 +596,7 @@ if __name__ == '__main__':
 		pygame.display.flip()
 		last_vals = vals
 
-	m = MyoRaw(sys.argv[1] if len(sys.argv) >= 2 else None)
+	m = MyoRaw(sys.argv[1] if len(sys.argv) >= 2 else None, filtered=False)
 
 	def proc_emg(emg, moving, times=[]):
 		if HAVE_PYGAME:
@@ -585,11 +650,13 @@ if __name__ == '__main__':
 	except KeyboardInterrupt:
 		pass
 	finally:
-		# m.power_off()
-		# print("Power off")
+		pygame.quit()
+		#m.power_off()
+		#print("Power off")
 		m.disconnect()
 		print("Disconnected")
-		# command = raw_input("Do you want to (d)isconnect or (p)ower off?\n")
+		# command = input("Do you want to (d)isconnect or (p)ower off?\n")
+		# print(command, type(command))
 		# if command == 'd':
 		#     m.disconnect()
 		#     print("Disconnected")
