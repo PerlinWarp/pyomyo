@@ -9,8 +9,11 @@
 		https://github.com/Alvipe/myo-raw
 
 	Edited by perlinwarp
-		https://github.com/PerlinWarp/NeuroLeap
+		https://github.com/PerlinWarp/pyomyo
 
+Warning, when using this library in a multithreaded way,
+know that any function called on Myo_Raw, may try to use the serial port,
+in windows if this is tried from a seperate thread you will get a permission error
 '''
 
 import enum
@@ -87,12 +90,10 @@ class BT(object):
 		self.handlers = []
 
 	# internal data-handling methods
-	def recv_packet(self, timeout=None):
-		t0 = time.time()
-		self.ser.timeout = None
-		while timeout is None or time.time() < t0 + timeout:
-			if timeout is not None:
-				self.ser.timeout = t0 + timeout - time.time()
+	def recv_packet(self):
+		n = self.ser.inWaiting() # Windows fix
+
+		while True:
 			c = self.ser.read()
 			if not c:
 				return None
@@ -101,17 +102,12 @@ class BT(object):
 			if ret:
 				if ret.typ == 0x80:
 					self.handle_event(ret)
+					# Windows fix
+					if n >= 5096:
+						print("Clearning",n)
+						self.ser.flushInput()
+					# End of Windows fix
 				return ret
-
-	def recv_packets(self, timeout=.5):
-		res = []
-		t0 = time.time()
-		while time.time() < t0 + timeout:
-			p = self.recv_packet(t0 + timeout - time.time())
-			if not p:
-				return res
-			res.append(p)
-		return res
 
 	def proc_byte(self, c):
 		if not self.buf:
@@ -220,8 +216,8 @@ class MyoRaw(object):
 
 		return None
 
-	def run(self, timeout=None):
-		self.bt.recv_packet(timeout)
+	def run(self):
+		self.bt.recv_packet()
 
 	def connect(self, addr=None):
 		'''
