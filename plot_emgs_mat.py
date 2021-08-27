@@ -1,14 +1,15 @@
 import multiprocessing
+import queue
+import numpy as np
 import mpl_toolkits.mplot3d as plt3d
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
 from matplotlib import animation
-import numpy as np
+from matplotlib.cm import get_cmap
 
 from myo_serial import MyoRaw
 
-print("EPILEPSY WARNING")
-print("The plot updates fast, press ctrl+c to stop")
+print("Press ctrl+pause/break to stop")
 
 # ------------ Myo Setup ---------------
 q = multiprocessing.Queue()
@@ -34,41 +35,66 @@ def worker(q):
 	while True:
 		try:
 			m.run()
-		except KeyboardInterrupt:
+		except:
 			print("Worker Stopped")
 			quit()
 
-
 # ------------ Plot Setup ---------------
-fig = plt.figure()
-axm = fig.add_subplot()
+QUEUE_SIZE = 100
+SENSORS = 8
+subplots = []
+lines = []
+# Set the size of the plot
+plt.rcParams["figure.figsize"] = (4,8)
+# using the variable axs for multiple Axes
+fig, subplots = plt.subplots(SENSORS, 1)
+fig.tight_layout()
+# Set each line to a different color
 
-myox = [2048,128,128,128,128,128,128,128]
-rects  = axm.bar(list(range(1,9)), myox)
+name = "tab10" # Change this if you have sensors > 10
+cmap = get_cmap(name)  # type: matplotlib.colors.ListedColormap
+colors = cmap.colors  # type: list
+
+for i in range(0,SENSORS):
+	ch_line,  = subplots[i].plot(range(QUEUE_SIZE),[0]*(QUEUE_SIZE), color=colors[i])
+	lines.append(ch_line)
+
+emg_queue = queue.Queue(QUEUE_SIZE)
 
 def animate(i):
-	myox = [128,128,128,128,128,128,128,128]
-
 	# Myo Plot
 	while not(q.empty()):
 		myox = list(q.get())
-		print(myox)
-	
-	for rect, yi in zip(rects, myox):
-		rect.set_height(yi)
+		if (emg_queue.full()):
+			emg_queue.get()
+		emg_queue.put(myox)
 
-	return rects
+	channels = np.array(emg_queue.queue)
 
-def main():
-	anim = animation.FuncAnimation(fig, animate, blit=False, interval=2)
-	try:
-		plt.show()
-	except KeyboardInterrupt:
-		quit()
+	if (emg_queue.full()):
+		for i in range(0,SENSORS):
+			channel = channels[:,i]
+			lines[i].set_ydata(channel)
+			subplots[i].set_ylim(0,max(1024,max(channel)))
 
 if __name__ == '__main__':
 	# Start Myo Process
 	p = multiprocessing.Process(target=worker, args=(q,))
 	p.start()
 
-	main()
+	while(q.empty()):
+		# Wait until we actually get data
+		continue
+	anim = animation.FuncAnimation(fig, animate, blit=False, interval=2)
+	def on_close(event):
+		p.terminate()
+		raise KeyboardInterrupt
+		print("On close has ran")
+	fig.canvas.mpl_connect('close_event', on_close)
+
+	try:
+		plt.show()
+	except KeyboardInterrupt:
+		plt.close()
+		p.close()
+		quit()
