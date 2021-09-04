@@ -1,4 +1,8 @@
 # PyoMyo
+
+![Playing breakout with sEMG](https://github.com/PerlinWarp/Neuro-Breakout/blob/main/media/Breakout.gif?raw=true "Breakout")
+
+
 ## Python Open-source Myo library
 
 This library was made from a fork of the MIT licensed [dhzu/myo-raw.](https://github.com/dzhu/myo-raw)
@@ -8,6 +12,8 @@ This code was then updated to Python3, multithreading support was added then mor
   
 **Note that sEMG data, the same kind gathered by the Myo is thought to be uniquely identifiable. Do not share this data without careful consideration of the future implications.**
   
+Also note, the Myo is outdated hardware, over the last year I have noticed a steady incline in the cost of second hand Myos. Both of my Myo's were bought for under £100, I do not recommend spending more than that to acquire one. Instead of buying one you should [join the discord](https://discord.gg/rJGJYNKK) to create an open hardware alternative!
+
 ## The Basics  
 
 ### myo_serial.py
