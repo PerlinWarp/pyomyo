@@ -2,7 +2,7 @@ import pygame
 from pygame.locals import *
 import multiprocessing
 
-from myo_serial import MyoRaw
+from pyomyo import MyoRaw
 
 # ------------ Myo Setup ---------------
 q = multiprocessing.Queue()

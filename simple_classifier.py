@@ -30,7 +30,7 @@ import pygame
 from pygame.locals import *
 import numpy as np
 
-from myo_serial import MyoRaw
+from pyomyo import MyoRaw
 
 SUBSAMPLE = 3
 K = 15

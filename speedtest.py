@@ -2,7 +2,7 @@
 import time
 import multiprocessing
 
-from myo_serial import MyoRaw
+from pyomyo import MyoRaw
 
 PLOT = True
 RAW = True

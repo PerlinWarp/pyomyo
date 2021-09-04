@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from matplotlib import animation
 from matplotlib.cm import get_cmap
 
-from myo_serial import MyoRaw
+from pyomyo import MyoRaw
 
 print("Press ctrl+pause/break to stop")
 
