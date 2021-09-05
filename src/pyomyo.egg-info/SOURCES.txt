@@ -1,0 +1,11 @@
+LICENSE
+README.md
+pyproject.toml
+setup.cfg
+src/pyomyo/__init__.py
+src/pyomyo/pyomyo.py
+src/pyomyo.egg-info/PKG-INFO
+src/pyomyo.egg-info/SOURCES.txt
+src/pyomyo.egg-info/dependency_links.txt
+src/pyomyo.egg-info/requires.txt
+src/pyomyo.egg-info/top_level.txt

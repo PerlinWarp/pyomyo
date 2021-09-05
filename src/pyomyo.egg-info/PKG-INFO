@@ -1,3 +1,20 @@
+Metadata-Version: 2.1
+Name: pyomyo
+Version: 0.0.1
+Summary: Python Opensource Myo library
+Home-page: https://github.com/PerlinWarp/pyomyo
+Author: PerlinWarp
+Author-email: PerlinWarp+Myo@gmail.com
+License: UNKNOWN
+Project-URL: Bug Tracker, https://github.com/PerlinWarp/pyomyo/issues
+Platform: UNKNOWN
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.6
+Description-Content-Type: text/markdown
+License-File: LICENSE
+
 # PyoMyo
 
 ![Playing breakout with sEMG](https://github.com/PerlinWarp/Neuro-Breakout/blob/main/media/Breakout.gif?raw=true "Breakout")
@@ -51,5 +68,7 @@ Then I futher added the ability to get true raw non-filtered data at 200Hz.
 This data is unrectified but scales from -128 and 127.  
   
 Sample data and a comparison between data captured in these modes can be found in [MyoEMGPreprocessing.ipynb](https://github.com/PerlinWarp/Neuro-Breakout/blob/main/Notebooks/MyoModesCompared/MyoEMGPreprocessing.ipynb)
+
+
 
 
