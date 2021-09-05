@@ -30,7 +30,7 @@ import pygame
 from pygame.locals import *
 import numpy as np
 
-from pyomyo import MyoRaw
+from pyomyo import MyoRaw, emg_mode
 
 SUBSAMPLE = 3
 K = 15
@@ -80,7 +80,7 @@ class Myo(MyoRaw):
 	HIST_LEN = 25
 
 	def __init__(self, cls, tty=None):
-		MyoRaw.__init__(self, tty, raw = False, filtered=True)
+		MyoRaw.__init__(self, tty, mode=emg_mode.PREPROCESSED)
 		self.cls = cls
 
 		self.history = deque([0] * Myo.HIST_LEN, Myo.HIST_LEN)

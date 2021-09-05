@@ -2,13 +2,13 @@ import pygame
 from pygame.locals import *
 import multiprocessing
 
-from pyomyo import MyoRaw
+from pyomyo import MyoRaw, emg_mode
 
 # ------------ Myo Setup ---------------
 q = multiprocessing.Queue()
 
 def worker(q):
-	m = MyoRaw(raw=True, filtered=False)
+	m = MyoRaw(mode=emg_mode.RAW)
 	m.connect()
 	
 	def add_to_queue(emg, movement):

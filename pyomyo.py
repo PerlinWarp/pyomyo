@@ -66,6 +66,11 @@ def multiord(b):
 	else:
 		return map(ord, b)
 
+class emg_mode(enum.Enum):
+	NO_DATA = 0 # Do not send EMG data
+	PREPROCESSED = 1 # Sends 50Hz rectified and band pass filtered data
+	FILTERED = 2 # Sends 200Hz filtered but not rectified data
+	RAW = 3 # Sends raw 200Hz data from the ADC ranged between -128 and 127
 
 class Arm(enum.Enum):
 	UNKNOWN = 0
@@ -213,7 +218,7 @@ class BT(object):
 class MyoRaw(object):
 	'''Implements the Myo-specific communication protocol.'''
 
-	def __init__(self, tty=None, raw = True, filtered=False):
+	def __init__(self, tty=None, mode=1):
 		if tty is None:
 			tty = self.detect_tty()
 		if tty is None:
@@ -226,8 +231,7 @@ class MyoRaw(object):
 		self.arm_handlers = []
 		self.pose_handlers = []
 		self.battery_handlers = []
-		self.raw = raw
-		self.filtered = filtered
+		self.mode = mode
 
 	def detect_tty(self):
 		for p in comports():
@@ -314,18 +318,18 @@ class MyoRaw(object):
 			# enable on/off arm notifications
 			self.write_attr(0x24, b'\x02\x00')
 			# enable EMG notifications
-			if not(self.raw):
+			if (self.mode == emg_mode.PREPROCESSED):
 				# Send the undocumented filtered 50Hz.
 				print("Starting filtered, 0x01")
 				self.start_filtered() # 0x01
+			elif (self.mode == emg_mode.FILTERED):
+				print("Starting raw filtered, 0x02")
+				self.start_raw() # 0x02
+			elif (self.mode == emg_mode.RAW):
+				print("Starting raw, unfiltered, 0x03")
+				self.start_raw_unfiltered() #0x03
 			else:
-				if (self.filtered):
-					print("Starting raw filtered, 0x02")
-					self.start_raw() # 0x02
-				else:
-					print("Starting raw, unfiltered, 0x03")
-					self.start_raw_unfiltered() #0x03
-
+				print("No EMG mode selected, not sending EMG data")
 			# Stop the Myo Disconnecting
 			self.sleep_mode(1)
 
@@ -580,7 +584,7 @@ class MyoRaw(object):
 			h(battery_level)
 
 if __name__ == '__main__':
-	m = MyoRaw(sys.argv[1] if len(sys.argv) >= 2 else None, filtered=False)
+	m = MyoRaw(sys.argv[1] if len(sys.argv) >= 2 else None, mode=emg_mode.PREPROCESSED)
 
 	def proc_emg(emg, moving, times=[]):
 		print(emg)
