@@ -2,7 +2,7 @@
 import time
 import multiprocessing
 
-from pyomyo import MyoRaw, emg_mode
+from pyomyo import Myo, emg_mode
 
 PLOT = True
 MODE = emg_mode.PREPROCESSED
@@ -11,9 +11,9 @@ MODE = emg_mode.PREPROCESSED
 q = multiprocessing.Queue()
 
 def worker(q):
-	m = MyoRaw(mode=MODE)
+	m = Myo(mode=MODE)
 	m.connect()
-	#print(f"Connected to Myo using raw={RAW}, filtered={FILTERED}.")
+	#print(f"Connected to Myo using {MODE}.")
 
 	def add_to_queue(emg, movement):
 		q.put(emg)

@@ -1,2 +1,10 @@
 __pycache__/*
 .ipynb_checkpoints/*
+
+data/*
+
+dist/*
+.venv
+.env/
+Pipfile
+*.egg-info

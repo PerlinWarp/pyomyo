@@ -1,11 +1,11 @@
 import multiprocessing
-from pyomyo import MyoRaw, emg_mode
+from pyomyo import Myo, emg_mode
 
 # ------------ Myo Setup ---------------
 q = multiprocessing.Queue()
 
 def worker(q):
-	m = MyoRaw(mode=emg_mode.FILTERED)
+	m = Myo(mode=emg_mode.FILTERED)
 	m.connect()
 	
 	def add_to_queue(emg, movement):

@@ -215,7 +215,7 @@ class BT(object):
 			self.handle_event(p)
 
 
-class MyoRaw(object):
+class Myo(object):
 	'''Implements the Myo-specific communication protocol.'''
 
 	def __init__(self, tty=None, mode=1):
@@ -584,7 +584,7 @@ class MyoRaw(object):
 			h(battery_level)
 
 if __name__ == '__main__':
-	m = MyoRaw(sys.argv[1] if len(sys.argv) >= 2 else None, mode=emg_mode.PREPROCESSED)
+	m = Myo(sys.argv[1] if len(sys.argv) >= 2 else None, mode=emg_mode.PREPROCESSED)
 
 	def proc_emg(emg, moving, times=[]):
 		print(emg)
