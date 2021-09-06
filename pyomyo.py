@@ -584,7 +584,7 @@ class Myo(object):
 			h(battery_level)
 
 if __name__ == '__main__':
-	m = Myo(sys.argv[1] if len(sys.argv) >= 2 else None, mode=emg_mode.PREPROCESSED)
+	m = Myo(sys.argv[1] if len(sys.argv) >= 2 else None, mode=emg_mode.RAW)
 
 	def proc_emg(emg, moving, times=[]):
 		print(emg)
