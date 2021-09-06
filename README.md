@@ -6,6 +6,8 @@ Cross platform and multithreaded and works without the Myo SDK.
 ```
 pip install pyomyo
 ```
+Documentation is in the Wiki, see [Getting Started](https://github.com/PerlinWarp/pyomyo/wiki/Getting-started).
+
 ![Playing breakout with sEMG](https://github.com/PerlinWarp/Neuro-Breakout/blob/main/media/Breakout.gif?raw=true "Breakout")
 
 
@@ -18,9 +20,9 @@ This code was then updated to Python3, multithreading support was added then mor
 
 **Note that sEMG data, the same kind gathered by the Myo is thought to be uniquely identifiable. Do not share this data without careful consideration of the future implications.**
 
-Also note, the Myo is outdated hardware, over the last year I have noticed a steady incline in the cost of second hand Myos. Both of my Myo's were bought for under £100, I do not recommend spending more than that to acquire one. Instead of buying one you should [join the discord](https://discord.gg/rJGJYNKK) to create an open hardware alternative!
+Also note, the Myo is outdated hardware, over the last year I have noticed a steady incline in the cost of second hand Myos. Both of my Myo's were bought for under £100, I do not recommend spending more than that to acquire one. Instead of buying one you should [join the discord](https://discord.com/invite/mG58PVyk83) to create an open hardware alternative!
 
-## The Basics  
+## Included Example Code
 
 ### pyomyo.py
 Prints sEMG readings at 200Hz straight from the Myo's ADC using the raw EMG mode.   
@@ -48,12 +50,14 @@ This file shows how to use the library and get Myo data in a seperate thread.
 To communicate with the Myo, I used [dzhu's myo-raw](https://github.com/dzhu/myo-raw).
 Then added some functions from [Alvipe](https://github.com/dzhu/myo-raw/pull/23) to allow changing of the Myo's LED.
 
-(0x01, raw=False)  
+emg_mode.PREPROCESSED (0x01)  
 By default myo-raw sends 50Hz data that has been rectified and filtered, using a hidden 0x01 mode.  
-(0x02, raw=True, filtering=True)  
+
+emg_mode.FILTERED (0x02)  
 Alvipe added the ability to also get filtered non-rectified sEMG (thanks Alvipe).  
-(0x03, raw=True, filtering=False)  
-Then I futher added the ability to get true raw non-filtered data at 200Hz.
+
+emg_mode.RAW (0x03)   
+Then I further added the ability to get true raw non-filtered data at 200Hz.
 This data is unrectified but scales from -128 and 127.  
 
 Sample data and a comparison between data captured in these modes can be found in [MyoEMGPreprocessing.ipynb](https://github.com/PerlinWarp/Neuro-Breakout/blob/main/Notebooks/MyoModesCompared/MyoEMGPreprocessing.ipynb)
