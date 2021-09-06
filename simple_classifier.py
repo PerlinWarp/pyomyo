@@ -30,7 +30,7 @@ import pygame
 from pygame.locals import *
 import numpy as np
 
-from pyomyo import MyoRaw
+from pyomyo import Myo, emg_mode
 
 SUBSAMPLE = 3
 K = 15
@@ -74,16 +74,16 @@ class Classifier(object):
 		return self.nearest(d)
 
 
-class Myo(MyoRaw):
-	'''Adds higher-level pose classification and handling onto MyoRaw.'''
+class MyoClassifier(Myo):
+	'''Adds higher-level pose classification and handling onto Myo.'''
 
 	HIST_LEN = 25
 
 	def __init__(self, cls, tty=None):
-		MyoRaw.__init__(self, tty, raw = False, filtered=True)
+		Myo.__init__(self, tty, mode=emg_mode.PREPROCESSED)
 		self.cls = cls
 
-		self.history = deque([0] * Myo.HIST_LEN, Myo.HIST_LEN)
+		self.history = deque([0] * MyoClassifier.HIST_LEN, MyoClassifier.HIST_LEN)
 		self.history_cnt = Counter(self.history)
 		self.add_emg_handler(self.emg_handler)
 		self.last_pose = None
@@ -97,7 +97,7 @@ class Myo(MyoRaw):
 		self.history.append(y)
 
 		r, n = self.history_cnt.most_common(1)[0]
-		if self.last_pose is None or (n > self.history_cnt[self.last_pose] + 5 and n > Myo.HIST_LEN / 2):
+		if self.last_pose is None or (n > self.history_cnt[self.last_pose] + 5 and n > MyoClassifier.HIST_LEN / 2):
 			self.on_raw_pose(r)
 			self.last_pose = r
 
@@ -135,7 +135,7 @@ if __name__ == '__main__':
 	scr = pygame.display.set_mode((w, h))
 	font = pygame.font.Font(None, 30)
 
-	m = Myo(Classifier())
+	m = MyoClassifier(Classifier())
 	hnd = EMGHandler(m)
 	m.add_emg_handler(hnd)
 	m.connect()

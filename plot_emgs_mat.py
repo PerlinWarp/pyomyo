@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from matplotlib import animation
 from matplotlib.cm import get_cmap
 
-from pyomyo import MyoRaw
+from pyomyo import Myo, emg_mode
 
 print("Press ctrl+pause/break to stop")
 
@@ -15,7 +15,7 @@ print("Press ctrl+pause/break to stop")
 q = multiprocessing.Queue()
 
 def worker(q):
-	m = MyoRaw(raw=False, filtered=True)
+	m = Myo(mode=emg_mode.PREPROCESSED)
 	m.connect()
 	
 	def add_to_queue(emg, movement):

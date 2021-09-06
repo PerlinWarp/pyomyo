@@ -2,19 +2,18 @@
 import time
 import multiprocessing
 
-from pyomyo import MyoRaw
+from pyomyo import Myo, emg_mode
 
 PLOT = True
-RAW = True
-FILTERED = False
+MODE = emg_mode.PREPROCESSED
 
 # ------------ Myo Setup ---------------
 q = multiprocessing.Queue()
 
 def worker(q):
-	m = MyoRaw(raw=RAW, filtered=FILTERED)
+	m = Myo(mode=MODE)
 	m.connect()
-	#print(f"Connected to Myo using raw={RAW}, filtered={FILTERED}.")
+	#print(f"Connected to Myo using {MODE}.")
 
 	def add_to_queue(emg, movement):
 		q.put(emg)
@@ -63,7 +62,7 @@ if __name__ == "__main__":
 		print(f"{len(data)} measurements in {end_time-start_time} seconds.")
 		freq = len(data)/(end_time-start_time)
 		print(f"Giving a frequency of {freq} Hz")
-		print(f"Myo using raw={RAW}, filtered={FILTERED}.")
+		print(f"Myo using mode {MODE}.")
 
 		if (PLOT):
 			import numpy as np
