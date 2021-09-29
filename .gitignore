@@ -8,3 +8,5 @@ dist/*
 .env/
 Pipfile
 *.egg-info
+
+*.csv
