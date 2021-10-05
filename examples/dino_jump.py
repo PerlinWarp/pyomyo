@@ -18,15 +18,12 @@ https://discord.com/invite/mG58PVyk83
 - PerlinWarp
 '''
 
-
-import sys
-sys.path.append('../')
-
 import pygame
 from pygame.locals import *
 from pynput.keyboard import Key, Controller
 from pyomyo import Myo, emg_mode
-import pyomyo.simple_classifier as sc
+
+import simple_classifier as sc
 
 TRAINING_MODE = True
 
