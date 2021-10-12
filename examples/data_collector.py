@@ -52,7 +52,8 @@ def data_worker(mode, seconds, filepath):
 
 # -------- Main Program Loop -----------
 if __name__ == '__main__':
-	seconds = 5
+	seconds = 10
 	file_name = str(seconds)+"_test_emg.csv"
-	p = multiprocessing.Process(target=data_worker, args=(emg_mode.FILTERED,seconds,file_name))
+	mode = emg_mode.PREPROCESSED
+	p = multiprocessing.Process(target=data_worker, args=(mode, seconds, file_name))
 	p.start()
