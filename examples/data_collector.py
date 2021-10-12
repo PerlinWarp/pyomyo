@@ -6,7 +6,7 @@ import pandas as pd
 
 from pyomyo import Myo, emg_mode
 
-def data_worker(mode=emg_mode.FILTERED, seconds=15, filepath="data_gather.csv"):
+def data_worker(mode, seconds, filepath):
 	collect = True
 
 	# ------------ Myo Setup ---------------
@@ -54,5 +54,6 @@ def data_worker(mode=emg_mode.FILTERED, seconds=15, filepath="data_gather.csv"):
 if __name__ == '__main__':
 	seconds = 10
 	file_name = str(seconds)+"_test_emg.csv"
-	p = multiprocessing.Process(target=data_worker, args=(seconds, file_name))
+	mode = emg_mode.PREPROCESSED
+	p = multiprocessing.Process(target=data_worker, args=(mode, seconds, file_name))
 	p.start()
