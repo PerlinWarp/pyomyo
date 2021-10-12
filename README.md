@@ -23,11 +23,11 @@ This code was then updated to Python3, multithreading support was added then mor
 Also note, the Myo is outdated hardware, over the last year I have noticed a steady incline in the cost of second hand Myos. Both of my Myo's were bought for under £100, I do not recommend spending more than that to acquire one. Instead of buying one you should [join the discord](https://discord.com/invite/mG58PVyk83) to create an open hardware alternative!
 
 ## Included Example Code
+The examples sub-folder contains some different ways of using the pyomyo library. 
+```
+git clone https://github.com/PerlinWarp/pyomyo
+```
 
-### pyomyo.py
-Prints sEMG readings at 200Hz straight from the Myo's ADC using the raw EMG mode.   
-Each EMG readings is between -128 and 127, it is the most "raw" the Myo can provide, however it's unlikely to be useful without extra processing.
-This file is also where the Myo driver is implemented, which uses Serial commands which are then sent over Bluetooth to interact with the Myo.
 
 ### plot_emgs.py
 Starts the Myo in mode 0x01 which provides data that's already preprocessed (bandpass filter + rectified).  
@@ -62,5 +62,9 @@ This data is unrectified but scales from -128 and 127.
 
 Sample data and a comparison between data captured in these modes can be found in [MyoEMGPreprocessing.ipynb](https://github.com/PerlinWarp/Neuro-Breakout/blob/main/Notebooks/MyoModesCompared/MyoEMGPreprocessing.ipynb)
 
+## The library  
 
-
+### pyomyo.py
+Prints sEMG readings at 200Hz straight from the Myo's ADC using the raw EMG mode.   
+Each EMG readings is between -128 and 127, it is the most "raw" the Myo can provide, however it's unlikely to be useful without extra processing.
+This file is also where the Myo driver is implemented, which uses Serial commands which are then sent over Bluetooth to interact with the Myo.

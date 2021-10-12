@@ -1,5 +1,6 @@
 '''
 Instructions:
+0. Install pynput e.g. pip install pynput
 1. Run python dino_jump.py - This launches the training tool.
 2. Click on the pygame window thats opened to make sure windows sends the keypresses to that process.
 3. Relax the Myo arm, and with your other hand press 0 - This labels the incoming data as class 0

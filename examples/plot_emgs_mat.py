@@ -48,6 +48,7 @@ lines = []
 plt.rcParams["figure.figsize"] = (4,8)
 # using the variable axs for multiple Axes
 fig, subplots = plt.subplots(SENSORS, 1)
+fig.canvas.manager.set_window_title("8 Channel EMG plot")
 fig.tight_layout()
 # Set each line to a different color
 

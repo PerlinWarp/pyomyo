@@ -1,3 +1,9 @@
+'''
+Can plot EMG data in 2 different ways
+change DRAW_LINES to try each.
+Press Ctrl + C in the terminal to exit 
+'''
+
 import pygame
 from pygame.locals import *
 import multiprocessing
@@ -8,7 +14,7 @@ from pyomyo import Myo, emg_mode
 q = multiprocessing.Queue()
 
 def worker(q):
-	m = Myo(mode=emg_mode.RAW)
+	m = Myo(mode=emg_mode.PREPROCESSED)
 	m.connect()
 	
 	def add_to_queue(emg, movement):
@@ -33,7 +39,7 @@ def worker(q):
 
 last_vals = None
 def plot(scr, vals):
-	DRAW_LINES = True
+	DRAW_LINES = False
 
 	global last_vals
 	if last_vals is None:
@@ -68,6 +74,9 @@ if __name__ == "__main__":
 
 	try:
 		while True:
+			# Handle pygame events to keep the window responding
+			pygame.event.pump()
+			# Get the emg data and plot it
 			while not(q.empty()):
 				emg = list(q.get())
 				plot(scr, [e / 500. for e in emg])
