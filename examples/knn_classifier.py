@@ -29,106 +29,37 @@ import time
 import pygame
 from pygame.locals import *
 import numpy as np
+from sklearn import neighbors
 
 from pyomyo import Myo, emg_mode
+from simple_classifier import Classifier, MyoClassifier, EMGHandler
 
 SUBSAMPLE = 3
 K = 15
 
-class Classifier(object):
-	'''A wrapper for nearest-neighbor classifier that stores
-	training data in vals0, ..., vals9.dat.'''
+class KNN_Classifier(Classifier):
+	'''Live implimentation of SkLearns KNN'''
 
 	def __init__(self):
-		for i in range(10):
-			with open('data/vals%d.dat' % i, 'ab') as f: pass
-		self.read_data()
-
-	def store_data(self, cls, vals):
-		with open('data/vals%d.dat' % cls, 'ab') as f:
-			f.write(pack('8H', *vals))
-
-		self.train(np.vstack([self.X, vals]), np.hstack([self.Y, [cls]]))
-
-	def read_data(self):
-		X = []
-		Y = []
-		for i in range(10):
-			X.append(np.fromfile('data/vals%d.dat' % i, dtype=np.uint16).reshape((-1, 8)))
-			Y.append(i + np.zeros(X[-1].shape[0]))
-
-		self.train(np.vstack(X), np.hstack(Y))
+		Classifier.__init__(self)
 
 	def train(self, X, Y):
 		self.X = X
 		self.Y = Y
-		self.model = None
+		if self.X.shape[0] >= K * SUBSAMPLE:
+			self.nn = neighbors.KNeighborsClassifier(n_neighbors=K, algorithm='kd_tree')
+			self.nn.fit(self.X[::SUBSAMPLE], self.Y[::SUBSAMPLE])
 
-	def nearest(self, d):
-		dists = ((self.X - d)**2).sum(1)
-		ind = dists.argmin()
-		return self.Y[ind]
+	def classify(self, emg):
+		x = np.array(emg).reshape(1,-1)
+		if self.X.shape[0] < K * SUBSAMPLE: 
+			return 0
 
-	def classify(self, d):
-		if self.X.shape[0] < K * SUBSAMPLE: return 0
-		return self.nearest(d)
-
-
-class MyoClassifier(Myo):
-	'''Adds higher-level pose classification and handling onto Myo.'''
-
-	HIST_LEN = 25
-
-	def __init__(self, cls, tty=None, mode=emg_mode.PREPROCESSED):
-		Myo.__init__(self, tty, mode=mode)
-		# Add a classifier
-		self.cls = cls
-
-		self.history = deque([0] * MyoClassifier.HIST_LEN, MyoClassifier.HIST_LEN)
-		self.history_cnt = Counter(self.history)
-		self.add_emg_handler(self.emg_handler)
-		self.last_pose = None
-
-		self.pose_handlers = []
-
-	def emg_handler(self, emg, moving):
-		y = self.cls.classify(emg)
-		self.history_cnt[self.history[0]] -= 1
-		self.history_cnt[y] += 1
-		self.history.append(y)
-
-		r, n = self.history_cnt.most_common(1)[0]
-		if self.last_pose is None or (n > self.history_cnt[self.last_pose] + 5 and n > MyoClassifier.HIST_LEN / 2):
-			self.on_raw_pose(r)
-			self.last_pose = r
-
-	def add_raw_pose_handler(self, h):
-		self.pose_handlers.append(h)
-
-	def on_raw_pose(self, pose):
-		for h in self.pose_handlers:
-			h(pose)
-
-def pack(fmt, *args):
-	return struct.pack('<' + fmt, *args)
-
-def unpack(fmt, *args):
-	return struct.unpack('<' + fmt, *args)
+		pred = self.nn.predict(x)
+		return int(pred[0])
 
 def text(scr, font, txt, pos, clr=(255,255,255)):
 	scr.blit(font.render(txt, True, clr), pos)
-
-
-class EMGHandler(object):
-	def __init__(self, m):
-		self.recording = -1
-		self.m = m
-		self.emg = (0,) * 8
-
-	def __call__(self, emg, moving):
-		self.emg = emg
-		if self.recording >= 0:
-			self.m.cls.store_data(self.recording, emg)
 
 if __name__ == '__main__':
 	pygame.init()
@@ -136,7 +67,7 @@ if __name__ == '__main__':
 	scr = pygame.display.set_mode((w, h))
 	font = pygame.font.Font(None, 30)
 
-	m = MyoClassifier(Classifier())
+	m = MyoClassifier(KNN_Classifier(), mode=emg_mode.PREPROCESSED)
 	hnd = EMGHandler(m)
 	m.add_emg_handler(hnd)
 	m.connect()
@@ -149,6 +80,7 @@ if __name__ == '__main__':
 
 			r = m.history_cnt.most_common(1)[0][0]
 
+			# Handle keypresses
 			for ev in pygame.event.get():
 				if ev.type == QUIT or (ev.type == KEYDOWN and ev.unicode == 'q'):
 					raise KeyboardInterrupt()
@@ -163,6 +95,7 @@ if __name__ == '__main__':
 					if K_0 <= ev.key <= K_9 or K_KP0 <= ev.key <= K_KP9:
 						hnd.recording = -1
 
+			# Plotting
 			scr.fill((0, 0, 0), (0, 0, w, h))
 
 			for i in range(10):
@@ -177,9 +110,19 @@ if __name__ == '__main__':
 				txt = font.render('%d' % i, True, clr)
 				scr.blit(txt, (x + 110, y))
 
-
+				# Plot the history of predicitons
 				scr.fill((0,0,0), (x+130, y + txt.get_height() / 2 - 10, len(m.history) * 20, 20))
 				scr.fill(clr, (x+130, y + txt.get_height() / 2 - 10, m.history_cnt[i] * 20, 20))
+
+				if m.cls.nn is not None:
+					print("emg", hnd.emg)
+					x = np.array(hnd.emg).reshape(1,-1)
+					dists, inds = m.cls.nn.kneighbors(x)
+					for i, (d, ind) in enumerate(zip(dists[0], inds[0])):
+						y = m.cls.Y[SUBSAMPLE*ind]
+						print("y", y)
+						text(scr, font, '%d %6d' % (y, d), (650, 20 * i))
+
 
 			pygame.display.flip()
 
