@@ -59,6 +59,11 @@ class Classifier(object):
 
 		self.train(np.vstack(X), np.hstack(Y))
 
+	def delete_data(self):
+		for i in range(10):
+			with open('data/vals%d.dat' % i, 'wb') as f: pass
+		self.read_data()
+
 	def train(self, X, Y):
 		self.X = X
 		self.Y = Y
@@ -159,6 +164,9 @@ if __name__ == '__main__':
 						hnd.recording = ev.key - K_Kp0
 					elif ev.unicode == 'r':
 						hnd.cl.read_data()
+					elif ev.unicode == 'e':
+						print("Pressed e, erasing local data")
+						m.cls.delete_data()
 				elif ev.type == KEYUP:
 					if K_0 <= ev.key <= K_9 or K_KP0 <= ev.key <= K_KP9:
 						hnd.recording = -1

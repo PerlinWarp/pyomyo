@@ -46,16 +46,17 @@ class KNN_Classifier(Classifier):
 	def train(self, X, Y):
 		self.X = X
 		self.Y = Y
+		self.model = None
 		if self.X.shape[0] >= K * SUBSAMPLE:
-			self.nn = neighbors.KNeighborsClassifier(n_neighbors=K, algorithm='kd_tree')
-			self.nn.fit(self.X[::SUBSAMPLE], self.Y[::SUBSAMPLE])
+			self.model = neighbors.KNeighborsClassifier(n_neighbors=K, algorithm='kd_tree')
+			self.model.fit(self.X[::SUBSAMPLE], self.Y[::SUBSAMPLE])
 
 	def classify(self, emg):
 		x = np.array(emg).reshape(1,-1)
 		if self.X.shape[0] < K * SUBSAMPLE: 
 			return 0
 
-		pred = self.nn.predict(x)
+		pred = self.model.predict(x)
 		return int(pred[0])
 
 def text(scr, font, txt, pos, clr=(255,255,255)):
@@ -114,10 +115,10 @@ if __name__ == '__main__':
 				scr.fill((0,0,0), (x+130, y + txt.get_height() / 2 - 10, len(m.history) * 20, 20))
 				scr.fill(clr, (x+130, y + txt.get_height() / 2 - 10, m.history_cnt[i] * 20, 20))
 
-				if m.cls.nn is not None:
+				if m.cls.model is not None:
 					print("emg", hnd.emg)
 					x = np.array(hnd.emg).reshape(1,-1)
-					dists, inds = m.cls.nn.kneighbors(x)
+					dists, inds = m.cls.model.kneighbors(x)
 					for i, (d, ind) in enumerate(zip(dists[0], inds[0])):
 						y = m.cls.Y[SUBSAMPLE*ind]
 						print("y", y)
