@@ -16,35 +16,7 @@ from xgboost import XGBClassifier
 from sklearn.naive_bayes import GaussianNB
 
 from pyomyo import Myo, emg_mode
-from simple_classifier import Classifier, MyoClassifier, EMGHandler
-
-class Live_Classifier(Classifier):
-	'''
-	General class for all Sklearn classifiers
-	Expects something you can call .fit and .predict on
-	'''
-	def __init__(self, classifier, name="Live Classifier", color=(0,55,175)):
-		self.model = classifier
-		# Add some identifiers to the classifier to identify what model was used in different screenshots
-		self.name = name
-		self.color = color
-		Classifier.__init__(self)
-
-	def train(self, X, Y):
-		self.X = X
-		self.Y = Y
-
-		if self.X.shape[0] > 0 and self.Y.shape[0] > 0: 
-			self.model.fit(self.X, self.Y)
-
-	def classify(self, emg):
-		if self.X.shape[0] == 0 or self.model == None:
-			# We have no data or model, return 0
-			return 0
-
-		x = np.array(emg).reshape(1,-1)
-		pred = self.model.predict(x)
-		return int(pred[0])
+from pyomyo.Classifier import Live_Classifier, MyoClassifier, EMGHandler
 
 class SVM_Classifier(Live_Classifier):
 	'''
@@ -119,20 +91,19 @@ class LR_Classifier(Live_Classifier):
 		return int(pred[0])
 
 
-def text(scr, font, txt, pos, clr=(255,255,255)):
-	scr.blit(font.render(txt, True, clr), pos)
-
 if __name__ == '__main__':
 	pygame.init()
 	w, h = 800, 320
 	scr = pygame.display.set_mode((w, h))
 	font = pygame.font.Font(None, 30)
 
-	#m = MyoClassifier(SVM_Classifier(), mode=emg_mode.PREPROCESSED)
+	# SVM Example
+	m = MyoClassifier(SVM_Classifier(), mode=emg_mode.PREPROCESSED)
+	# Logistic Regression Example
 	#m = MyoClassifier(LR_Classifier(), mode=emg_mode.PREPROCESSED)
 	# Live classifier example
-	model = GaussianNB()
-	m = MyoClassifier(Live_Classifier(model, name="NB", color=(50,0,50)))
+	#model = GaussianNB()
+	#m = MyoClassifier(Live_Classifier(model, name="NB", color=(255,165,50)))
 
 	hnd = EMGHandler(m)
 	m.add_emg_handler(hnd)
@@ -149,49 +120,7 @@ if __name__ == '__main__':
 		while True:
 			m.run()
 
-			r = m.history_cnt.most_common(1)[0][0]
-
-			# Handle keypresses
-			for ev in pygame.event.get():
-				if ev.type == QUIT or (ev.type == KEYDOWN and ev.unicode == 'q'):
-					raise KeyboardInterrupt()
-				elif ev.type == KEYDOWN:
-					if K_0 <= ev.key <= K_9:
-						# Labelling using row of numbers
-						hnd.recording = ev.key - K_0
-					elif K_KP0 <= ev.key <= K_KP9:
-						# Labelling using Keypad
-						hnd.recording = ev.key - K_Kp0
-					elif ev.unicode == 'r':
-						hnd.cl.read_data()
-					elif ev.unicode == 'e':
-						print("Pressed e, erasing local data")
-						m.cls.delete_data()
-				elif ev.type == KEYUP:
-					if K_0 <= ev.key <= K_9 or K_KP0 <= ev.key <= K_KP9:
-						# Don't record incoming data
-						hnd.recording = -1
-
-			# Plotting
-			scr.fill((0, 0, 0), (0, 0, w, h))
-
-			for i in range(10):
-				x = 0
-				y = 0 + 30 * i
-				# Set the barplot color
-				clr = m.cls.color if i == r else (255,255,255)
-
-				txt = font.render('%5d' % (m.cls.Y == i).sum(), True, (255,255,255))
-				scr.blit(txt, (x + 20, y))
-
-				txt = font.render('%d' % i, True, clr)
-				scr.blit(txt, (x + 110, y))
-
-				# Plot the barchart plot
-				scr.fill((0,0,0), (x+130, y + txt.get_height() / 2 - 10, len(m.history) * 20, 20))
-				scr.fill(clr, (x+130, y + txt.get_height() / 2 - 10, m.history_cnt[i] * 20, 20))
-
-			pygame.display.flip()
+			m.run_gui(hnd, scr, font, w, h)
 
 	except KeyboardInterrupt:
 		pass

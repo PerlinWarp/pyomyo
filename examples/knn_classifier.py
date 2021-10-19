@@ -32,7 +32,7 @@ import numpy as np
 from sklearn import neighbors
 
 from pyomyo import Myo, emg_mode
-from simple_classifier import Classifier, MyoClassifier, EMGHandler
+from pyomyo.Classifier import Classifier, MyoClassifier, EMGHandler
 
 SUBSAMPLE = 3
 K = 15
@@ -92,6 +92,9 @@ if __name__ == '__main__':
 						hnd.recording = ev.key - K_Kp0
 					elif ev.unicode == 'r':
 						hnd.cl.read_data()
+					elif ev.unicode == 'e':
+						print("Pressed e, erasing local data")
+						m.cls.delete_data()
 				elif ev.type == KEYUP:
 					if K_0 <= ev.key <= K_9 or K_KP0 <= ev.key <= K_KP9:
 						hnd.recording = -1

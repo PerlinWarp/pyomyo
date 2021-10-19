@@ -39,7 +39,11 @@ class Classifier(object):
 	'''A wrapper for nearest-neighbor classifier that stores
 	training data in vals0, ..., vals9.dat.'''
 
-	def __init__(self):
+	def __init__(self, name="Classifier", color=(0,200,0)):
+		# Add some identifiers to the classifier to identify what model was used in different screenshots
+		self.name = name
+		self.color = color
+
 		for i in range(10):
 			with open('data/vals%d.dat' % i, 'ab') as f: pass
 		self.read_data()
@@ -78,7 +82,6 @@ class Classifier(object):
 		if self.X.shape[0] < K * SUBSAMPLE: return 0
 		return self.nearest(d)
 
-
 class MyoClassifier(Myo):
 	'''Adds higher-level pose classification and handling onto Myo.'''
 
@@ -114,6 +117,50 @@ class MyoClassifier(Myo):
 		for h in self.pose_handlers:
 			h(pose)
 
+	def run_gui(self, hnd, scr, font, w, h):
+		# Handle keypresses
+		for ev in pygame.event.get():
+			if ev.type == QUIT or (ev.type == KEYDOWN and ev.unicode == 'q'):
+				raise KeyboardInterrupt()
+			elif ev.type == KEYDOWN:
+				if K_0 <= ev.key <= K_9:
+					# Labelling using row of numbers
+					hnd.recording = ev.key - K_0
+				elif K_KP0 <= ev.key <= K_KP9:
+					# Labelling using Keypad
+					hnd.recording = ev.key - K_Kp0
+				elif ev.unicode == 'r':
+					hnd.cl.read_data()
+				elif ev.unicode == 'e':
+					print("Pressed e, erasing local data")
+					m.cls.delete_data()
+			elif ev.type == KEYUP:
+				if K_0 <= ev.key <= K_9 or K_KP0 <= ev.key <= K_KP9:
+					# Don't record incoming data
+					hnd.recording = -1
+
+		# Plotting
+		scr.fill((0, 0, 0), (0, 0, w, h))
+		r = self.history_cnt.most_common(1)[0][0]
+
+		for i in range(10):
+			x = 0
+			y = 0 + 30 * i
+			# Set the barplot color
+			clr = self.cls.color if i == r else (255,255,255)
+
+			txt = font.render('%5d' % (self.cls.Y == i).sum(), True, (255,255,255))
+			scr.blit(txt, (x + 20, y))
+
+			txt = font.render('%d' % i, True, clr)
+			scr.blit(txt, (x + 110, y))
+
+			# Plot the barchart plot
+			scr.fill((0,0,0), (x+130, y + txt.get_height() / 2 - 10, len(self.history) * 20, 20))
+			scr.fill(clr, (x+130, y + txt.get_height() / 2 - 10, self.history_cnt[i] * 20, 20))
+
+		pygame.display.flip()
+
 def pack(fmt, *args):
 	return struct.pack('<' + fmt, *args)
 
@@ -135,6 +182,31 @@ class EMGHandler(object):
 		if self.recording >= 0:
 			self.m.cls.store_data(self.recording, emg)
 
+class Live_Classifier(Classifier):
+	'''
+	General class for all Sklearn classifiers
+	Expects something you can call .fit and .predict on
+	'''
+	def __init__(self, classifier, name="Live Classifier", color=(0,55,175)):
+		self.model = classifier
+		Classifier.__init__(self, name=name, color=color)
+
+	def train(self, X, Y):
+		self.X = X
+		self.Y = Y
+
+		if self.X.shape[0] > 0 and self.Y.shape[0] > 0: 
+			self.model.fit(self.X, self.Y)
+
+	def classify(self, emg):
+		if self.X.shape[0] == 0 or self.model == None:
+			# We have no data or model, return 0
+			return 0
+
+		x = np.array(emg).reshape(1,-1)
+		pred = self.model.predict(x)
+		return int(pred[0])
+
 if __name__ == '__main__':
 	pygame.init()
 	w, h = 800, 320
@@ -148,48 +220,15 @@ if __name__ == '__main__':
 
 	m.add_raw_pose_handler(print)
 
+	# Set Myo LED color to model color
+	m.set_leds(m.cls.color, m.cls.color)
+	# Set pygame window name
+	pygame.display.set_caption(m.cls.name)
+
 	try:
 		while True:
 			m.run()
-
-			r = m.history_cnt.most_common(1)[0][0]
-
-			for ev in pygame.event.get():
-				if ev.type == QUIT or (ev.type == KEYDOWN and ev.unicode == 'q'):
-					raise KeyboardInterrupt()
-				elif ev.type == KEYDOWN:
-					if K_0 <= ev.key <= K_9:
-						hnd.recording = ev.key - K_0
-					elif K_KP0 <= ev.key <= K_KP9:
-						hnd.recording = ev.key - K_Kp0
-					elif ev.unicode == 'r':
-						hnd.cl.read_data()
-					elif ev.unicode == 'e':
-						print("Pressed e, erasing local data")
-						m.cls.delete_data()
-				elif ev.type == KEYUP:
-					if K_0 <= ev.key <= K_9 or K_KP0 <= ev.key <= K_KP9:
-						hnd.recording = -1
-
-			scr.fill((0, 0, 0), (0, 0, w, h))
-
-			for i in range(10):
-				x = 0
-				y = 0 + 30 * i
-
-				clr = (0,200,0) if i == r else (255,255,255)
-
-				txt = font.render('%5d' % (m.cls.Y == i).sum(), True, (255,255,255))
-				scr.blit(txt, (x + 20, y))
-
-				txt = font.render('%d' % i, True, clr)
-				scr.blit(txt, (x + 110, y))
-
-
-				scr.fill((0,0,0), (x+130, y + txt.get_height() / 2 - 10, len(m.history) * 20, 20))
-				scr.fill(clr, (x+130, y + txt.get_height() / 2 - 10, m.history_cnt[i] * 20, 20))
-
-			pygame.display.flip()
+			m.run_gui(scr, font, w, h)
 
 	except KeyboardInterrupt:
 		pass
