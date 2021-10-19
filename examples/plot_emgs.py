@@ -39,7 +39,7 @@ def worker(q):
 
 last_vals = None
 def plot(scr, vals):
-	DRAW_LINES = False
+	DRAW_LINES = True
 
 	global last_vals
 	if last_vals is None:

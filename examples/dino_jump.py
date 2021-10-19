@@ -1,6 +1,6 @@
 '''
 Instructions:
-0. Install pynput e.g. pip install pynput
+0. Install pynput and XGboost e.g. pip install pynput xgboost
 1. Run python dino_jump.py - This launches the training tool.
 2. Click on the pygame window thats opened to make sure windows sends the keypresses to that process.
 3. Relax the Myo arm, and with your other hand press 0 - This labels the incoming data as class 0
@@ -24,9 +24,9 @@ from pygame.locals import *
 from pynput.keyboard import Key, Controller
 from pyomyo import Myo, emg_mode
 from pyomyo.Classifier import Live_Classifier, MyoClassifier, EMGHandler
-from sklearn.linear_model import LogisticRegression
+from xgboost import XGBClassifier
 
-TRAINING_MODE = True
+TRAINING_MODE = False
 
 def dino_handler(pose):
 	print("Pose detected", pose)
@@ -45,8 +45,9 @@ if __name__ == '__main__':
 	font = pygame.font.Font(None, 30)
 
 	# Make an ML Model to train and test with live
-	# Logistic Regression Classifier Example
-	clr = Live_Classifier(LogisticRegression(), name="LR", color=(50,50,255))
+	# XGBoost Classifier Example
+	model = XGBClassifier(eval_metric='logloss')
+	clr = Live_Classifier(model, name="XG", color=(50,50,255))
 	m = MyoClassifier(clr, mode=emg_mode.PREPROCESSED)
 
 	hnd = EMGHandler(m)

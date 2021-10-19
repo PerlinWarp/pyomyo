@@ -133,7 +133,7 @@ class MyoClassifier(Myo):
 					hnd.cl.read_data()
 				elif ev.unicode == 'e':
 					print("Pressed e, erasing local data")
-					m.cls.delete_data()
+					self.cls.delete_data()
 			elif ev.type == KEYUP:
 				if K_0 <= ev.key <= K_9 or K_KP0 <= ev.key <= K_KP9:
 					# Don't record incoming data
@@ -228,7 +228,7 @@ if __name__ == '__main__':
 	try:
 		while True:
 			m.run()
-			m.run_gui(scr, font, w, h)
+			m.run_gui(hnd, scr, font, w, h)
 
 	except KeyboardInterrupt:
 		pass

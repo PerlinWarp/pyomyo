@@ -12,4 +12,5 @@ Pipfile
 *.egg-info
 
 *.csv
+*.dat
 */.ipynb_checkpoints/*

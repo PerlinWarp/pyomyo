@@ -10,6 +10,17 @@ Documentation is in the Wiki, see [Getting Started](https://github.com/PerlinWar
 
 ![Playing breakout with sEMG](https://github.com/PerlinWarp/Neuro-Breakout/blob/main/media/Breakout.gif?raw=true "Breakout")
 
+### PyoMyo Documentation
+[Home](https://github.com/PerlinWarp/pyomyo/wiki)  
+[Getting started](https://github.com/PerlinWarp/pyomyo/wiki/Getting-started)  
+[Common Problems](https://github.com/PerlinWarp/pyomyo/wiki/Common-Problems)  
+[Myo Placement](https://github.com/PerlinWarp/pyomyo/wiki/Myo-Placement)  
+
+#### The big picture
+[Why should you care?](https://github.com/PerlinWarp/pyomyo/wiki/Why-should-you-care%3F)  
+[Basics of EMG Design](https://github.com/PerlinWarp/pyomyo/wiki/The-basics-of-EMG-design)  
+
+[Links to other resources](https://github.com/PerlinWarp/pyomyo/wiki/Links)  
 
 ## Python Open-source Myo library
 
@@ -29,17 +40,21 @@ git clone https://github.com/PerlinWarp/pyomyo
 ```
 
 
-### plot_emgs.py
-Starts the Myo in mode 0x01 which provides data that's already preprocessed (bandpass filter + rectified).  
-This data is then plotted in pygame and is a good first step to see how the Myo works.  
-Sliding your finger under each sensor on the Myo will help identify which plot is for sensor.
-With the terminal selected press Ctrl + C to kill the processes.
+### plot_emgs_mat.py
+<p align="center">
+<img src="https://i.imgur.com/SDa9baf.gif" alt="Left to Right Wrist movements."/>
+</p>
 
-### simple_classifier.py
-Uses a simple nearest neighbour classifier and predicts gestures live.  
-Make a gesture with one hand then press a number key to label the incoming EMG values that class.  
-Once two classes have been made new data is automatically classified.
-Labelled data is stored as a numpy array in the data directory.
+Starts the Myo in mode 0x01 which provides data that's already preprocessed (bandpass filter + rectified).  
+This data is then plotted in Matplotlib and is a good first step to see how the Myo works.  
+Sliding your finger under each sensor on the Myo will help identify which plot is for sensor.
+
+### dino_jump.py
+<p align="center">
+<img src="https://media3.giphy.com/media/7QPdXL6TRtA5Juvmnx/giphy.gif?cid=790b76118f3473e257d1da6173f7fe1fe114526dad4e0718&rid=giphy.gif&ct=g" alt="Chrome Dinosaur Game"/>
+</p>
+
+An example showing how to use the live classifier built into pyomyo, see [Getting Started](https://github.com/PerlinWarp/pyomyo/wiki/Getting-started) for more info.
 
 ### myo_multithreading_examp.py
 Devs start here.  
@@ -68,3 +83,9 @@ Sample data and a comparison between data captured in these modes can be found i
 Prints sEMG readings at 200Hz straight from the Myo's ADC using the raw EMG mode.   
 Each EMG readings is between -128 and 127, it is the most "raw" the Myo can provide, however it's unlikely to be useful without extra processing.
 This file is also where the Myo driver is implemented, which uses Serial commands which are then sent over Bluetooth to interact with the Myo.
+
+### Classifier.py
+Implements a live classifier using the k-nearest neighbors algorithm.  
+Press a number from 0-9 to label incoming data as the class represented by the number.  
+Press e to delete all the data you have gathered.  
+Once two classes have been made new data is automatically classified. Labelled data is stored as a numpy array in the ``data\`` directory.
