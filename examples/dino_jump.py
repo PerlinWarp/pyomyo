@@ -23,8 +23,8 @@ import pygame
 from pygame.locals import *
 from pynput.keyboard import Key, Controller
 from pyomyo import Myo, emg_mode
-
-import simple_classifier as sc
+from pyomyo.Classifier import Live_Classifier, MyoClassifier, EMGHandler
+from sklearn.linear_model import LogisticRegression
 
 TRAINING_MODE = True
 
@@ -36,7 +36,6 @@ def dino_handler(pose):
 			keyboard.press(Key.space)
 			keyboard.release(Key.space)
 
-
 if __name__ == '__main__':
 	keyboard = Controller()
 
@@ -45,52 +44,28 @@ if __name__ == '__main__':
 	scr = pygame.display.set_mode((w, h))
 	font = pygame.font.Font(None, 30)
 
-	m = sc.MyoClassifier(sc.Classifier())
-	hnd = sc.EMGHandler(m)
+	# Make an ML Model to train and test with live
+	# Logistic Regression Classifier Example
+	clr = Live_Classifier(LogisticRegression(), name="LR", color=(50,50,255))
+	m = MyoClassifier(clr, mode=emg_mode.PREPROCESSED)
+
+	hnd = EMGHandler(m)
 	m.add_emg_handler(hnd)
 	m.connect()
 
 	m.add_raw_pose_handler(dino_handler)
 
+	# Set Myo LED color to model color
+	m.set_leds(m.cls.color, m.cls.color)
+	# Set pygame window name
+	pygame.display.set_caption(m.cls.name)
+
 	try:
 		while True:
+			# Run the Myo, get more data
 			m.run()
-
-			r = m.history_cnt.most_common(1)[0][0]
-
-			for ev in pygame.event.get():
-				if ev.type == QUIT or (ev.type == KEYDOWN and ev.unicode == 'q'):
-					raise KeyboardInterrupt()
-				elif ev.type == KEYDOWN:
-					if K_0 <= ev.key <= K_9:
-						hnd.recording = ev.key - K_0
-					elif K_KP0 <= ev.key <= K_KP9:
-						hnd.recording = ev.key - K_Kp0
-					elif ev.unicode == 'r':
-						hnd.cl.read_data()
-				elif ev.type == KEYUP:
-					if K_0 <= ev.key <= K_9 or K_KP0 <= ev.key <= K_KP9:
-						hnd.recording = -1
-
-			scr.fill((0, 0, 0), (0, 0, w, h))
-
-			for i in range(10):
-				x = 0
-				y = 0 + 30 * i
-
-				clr = (0,200,0) if i == r else (255,255,255)
-
-				txt = font.render('%5d' % (m.cls.Y == i).sum(), True, (255,255,255))
-				scr.blit(txt, (x + 20, y))
-
-				txt = font.render('%d' % i, True, clr)
-				scr.blit(txt, (x + 110, y))
-
-
-				scr.fill((0,0,0), (x+130, y + txt.get_height() / 2 - 10, len(m.history) * 20, 20))
-				scr.fill(clr, (x+130, y + txt.get_height() / 2 - 10, m.history_cnt[i] * 20, 20))
-
-			pygame.display.flip()
+			# Run the classifier GUI
+			m.run_gui(hnd, scr, font, w, h)			
 
 	except KeyboardInterrupt:
 		pass
