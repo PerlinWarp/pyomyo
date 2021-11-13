@@ -48,7 +48,7 @@ if __name__ == '__main__':
 	# XGBoost Classifier Example
 	model = XGBClassifier(eval_metric='logloss')
 	clr = Live_Classifier(model, name="XG", color=(50,50,255))
-	m = MyoClassifier(clr, mode=emg_mode.PREPROCESSED)
+	m = MyoClassifier(clr, mode=emg_mode.PREPROCESSED, hist_len=10)
 
 	hnd = EMGHandler(m)
 	m.add_emg_handler(hnd)
