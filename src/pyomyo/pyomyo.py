@@ -541,6 +541,65 @@ class Myo(object):
 			# first byte tells it to vibrate; purpose of second byte is unknown (payload size?)
 			self.write_attr(0x19, pack('3B', 3, 1, length))
 
+	def vibrate_ds(self, duration, strength):
+		'''
+		Myo specification includes a vibrate2 command (0x07)
+		The packet seems to be a header (2 bytes) followed by 6 vibration commands (6*3 bytes)
+		So the expected size of the packet is 20 bytes. Buffering all 6 vibration commands at once to limit data sends? 
+		'''
+		header = pack('2B', 7, 18) # Mode 0x07 (extended vibe) and 18 payload size
+		packet = header
+
+		for i in range(0,6):
+			'''
+			Generate 6 vibration commands
+			'''
+			d = pack('H', int(duration/6)) # 16 bits duration (in ms) of the vibration
+			s = pack('B', strength) # 8 bits, strength of vibration (0 - motor off, 255 - full speed)
+
+			# Add them to the packet, iteratively build it up
+			packet += d + s
+
+		# Send the packet we made
+		self.write_attr(0x19, packet)
+
+	def vibrate_six_array(self, d, s):
+		'''
+		Expects s, an array of 6 motor speeds
+				d, an array of 6 motor speeds
+				d, or an int that's used for each one
+		'''
+		header = pack('2B', 7, 18) # Mode 0x07 (extended vibe) and 18 payload size
+		packet = header
+
+		if (len(s) == 1):
+			self.vibrate_ds(d,s)
+			return
+		elif (type(d) == int):
+			d = [d]*6
+
+		if (len(s) == 6 and len(d) == 6):
+			try:
+				# Build the packet iteratively
+				for i in range(0,6):
+					'''
+					Generate 6 vibration commands
+					'''
+					duration = pack('H', d[i]) # 16 bits duration (in ms) of the vibration
+					strength = pack('B', s[i]) # 8 bits, strength of vibration (0 - motor off, 255 - full speed)
+
+					# Add them to the packet, iteratively build it up
+					packet += duration + strength
+
+				print("Packet:", packet)
+				print("Length of packet: ", len(packet))
+			except:
+				print("Duration and strength need to be 6 long")
+				print("d", len(d), "s", len(s))
+				return
+			# Send the packet we made
+			self.write_attr(0x19, packet)
+
 	def set_leds(self, logo, line):
 		self.write_attr(0x19, pack('8B', 6, 6, *(logo + line)))
 
