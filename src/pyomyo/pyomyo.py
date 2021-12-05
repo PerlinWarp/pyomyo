@@ -541,6 +541,18 @@ class Myo(object):
 			# first byte tells it to vibrate; purpose of second byte is unknown (payload size?)
 			self.write_attr(0x19, pack('3B', 3, 1, length))
 
+	def vibrate2(self, d, s):
+		'''
+		0x07 is the extended vibration
+		16 bits for duration
+		8 bits for strength (0-255) 
+		'''
+		header = pack('2B', 7, 3) # Mode 0x07 (extended vibe) and 3 byte payload size
+		duration = pack('H', d)
+		strength = pack('B', s)
+		packet = header + duration + strength
+		self.write_attr(0x19, packet)
+
 	def vibrate_ds(self, duration, strength):
 		'''
 		Myo specification includes a vibrate2 command (0x07)
