@@ -35,7 +35,11 @@ channel_5 = []
 channel_6 = []
 channel_7 = []
 
-quantSamples = 0
+labelArray =np.zeros(1)
+takingSamples = 1
+dimensions_f = (0,arraySize)
+gestureArray=np.empty(dimensions_f)
+quantSamples = 0 
 
 # ------------ Myo Setup ---------------
 q = multiprocessing.Queue()
@@ -67,37 +71,50 @@ def worker(q):
 # -------- Main Program Loop -----------
 if __name__ == "__main__":
     # User input for the type of gesture
-    label = input("Enter type of gesture: ")
+    labelArray[0] = input("Enter type of gesture:")
     p = multiprocessing.Process(target=worker, args=(q,))
     p.start()
 
     try:
         
+        while(takingSamples == 1 ):
+            channel_0 = []
+            channel_1 = []
+            channel_2 = []
+            channel_3 = []
+            channel_4 = []
+            channel_5 = []
+            channel_6 = []
+            channel_7 = []
+            quantSamples = 0
+            while quantSamples < samples:
+                    emg = list(q.get())
+                    channel_0.append(emg[0])
+                    channel_1.append(emg[1])
+                    channel_2.append(emg[2])
+                    channel_3.append(emg[3])
+                    channel_4.append(emg[4])
+                    channel_5.append(emg[5])
+                    channel_6.append(emg[6])
+                    channel_7.append(emg[7])
+                    quantSamples += 1
 
-        while quantSamples < 100:
-            while not(q.empty()):
-                emg = list(q.get())
-                channel_0.append(emg[0])
-                channel_1.append(emg[1])
-                channel_2.append(emg[2])
-                channel_3.append(emg[3])
-                channel_4.append(emg[4])
-                channel_5.append(emg[5])
-                channel_6.append(emg[6])
-                channel_7.append(emg[7])
-
-                quantSamples += 1
-
-        # Concatenate all channels into one horizontal array
-        arrayLine = np.concatenate((channel_0, channel_1, channel_2, channel_3, channel_4, channel_5, channel_6, channel_7), axis=None)
-        gestureArray = np.vstack([arrayLine,gestureArray])# stack lines of signal
-        # Append label to the end of the array
-        arrayLine = np.append(arrayLine, label)
-
+            # Concatenate all channels into one horizontal array
+            arrayLine = np.concatenate((channel_0,channel_1, channel_2,channel_3,channel_4,channel_5,channel_6,channel_7,labelArray), axis=None);
+            gestureArray = np.vstack([arrayLine,gestureArray])# stack lines of signal
+            takingSamples  = int(input("samples caught : " + str(quantSamples) + " Continue taking samples?"))
         
+        name_csv = input('Give a name to de data frame: ')
+        #creates the dataframe
+        df = pd.DataFrame(data=gestureArray,  columns=signal_header)
+        # print(df)
+        #correct the datafram for the recurrence plot
+        df.to_csv(name_csv)
+        df = pd.read_csv(name_csv,index_col=0)
+        # df.drop(labels =["gesture"],axis=1,inplace=True)
+        # dfTransposed = df.T
+        print(df)
         
-
-
     except KeyboardInterrupt:
         print("Quitting")
         pygame.quit()
