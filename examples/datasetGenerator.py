@@ -4,6 +4,7 @@ import multiprocessing
 import numpy as np
 from pyomyo import Myo, emg_mode
 import csv
+import pandas as pd
 
 # Initial definitions
 samples = 100
@@ -89,23 +90,13 @@ if __name__ == "__main__":
 
         # Concatenate all channels into one horizontal array
         arrayLine = np.concatenate((channel_0, channel_1, channel_2, channel_3, channel_4, channel_5, channel_6, channel_7), axis=None)
-
+        gestureArray = np.vstack([arrayLine,gestureArray])# stack lines of signal
         # Append label to the end of the array
         arrayLine = np.append(arrayLine, label)
 
-        # Generate CSV file
-        filename = input('Give a name to de data frame: ')
-        filename = filename + ".csv"
-        with open(filename, 'w', newline='') as csvfile:
-            csvwriter = csv.writer(csvfile)
-            
-            # Write header to CSV
-            csvwriter.writerow(signal_header)
-            
-            # Write data array line to CSV
-            csvwriter.writerow(arrayLine)
+        
+        
 
-        print(f"CSV file '{filename}' generated successfully.")
 
     except KeyboardInterrupt:
         print("Quitting")
