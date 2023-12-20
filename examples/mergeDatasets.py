@@ -1,22 +1,24 @@
+import os
 import pandas as pd
-import glob
 
-# Specify the path where your CSV files are located
-path = 'datasets'
+# Set the path to the folder containing datasets
+folder_path = 'datasets'
 
-# Use glob to get all the CSV files in the specified path
-all_files = glob.glob(path + "/*.csv")
+# List all CSV files in the folder
+csv_files = [f for f in os.listdir(folder_path) if f.endswith('.csv')]
 
-# Initialize an empty list to store the data frames
-li = []
+# Initialize an empty DataFrame to store the combined data
+combined_data = pd.DataFrame()
 
-# Loop through all the CSV files and read them into pandas data frames
-for filename in all_files:
-    df = pd.read_csv(filename, index_col=None, header=0)
-    li.append(df)
+# Iterate through each CSV file and concatenate the data
+for csv_file in csv_files:
+    file_path = os.path.join(folder_path, csv_file)
+    df = pd.read_csv(file_path)
+    combined_data = pd.concat([combined_data, df], axis=1, ignore_index=True)
 
-# Concatenate all the data frames into a single data frame
-combined_df = pd.concat(li, axis=0, ignore_index=True)
+# Add the header to the combined DataFrame
+header = ["sample_" + str(i) for i in range(combined_data.shape[1])]
+combined_data.columns = header
 
-# Write the combined data frame to a new CSV file
-combined_df.to_csv('combined_data.csv', index=False)
+# Save the combined DataFrame to a new CSV file
+combined_data.to_csv('combined_dataset.csv', index=False)

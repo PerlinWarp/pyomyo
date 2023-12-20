@@ -67,10 +67,10 @@ if __name__ == '__main__':
 
     # Allow the user to choose the gesture
     print("Choose a gesture to record:")
-    print("1. Relaxed")
-    print("2. Fist")
-    print("3. Spock")
-    print("4. Pointing")
+    print("0. Relaxed")
+    print("1. Fist")
+    print("2. Spock")
+    print("3. Pointing")
 
     choice = input("Enter the number corresponding to the gesture: ")
     
