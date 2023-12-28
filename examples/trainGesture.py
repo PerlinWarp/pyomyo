@@ -9,7 +9,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 scaler = StandardScaler()
 
-# Todo: fazer menu para repetir treinamento e para escolher dataset
+# 1Todo: fazer menu para repetir treinamento e para escolher dataset
 treinamento = 1
 # while(treinamento != 0):
 # name_df = input("diga o nome do csv:")
@@ -55,7 +55,7 @@ print(model.summary())
 #     # layers.Dense(units=512, activation='relu'),
 #     # the linear output layer 
 #     layers.Dense(5, activation= "softmax"),
-# ])
+# ])4
 
 # Model compile************************
 model.compile(
