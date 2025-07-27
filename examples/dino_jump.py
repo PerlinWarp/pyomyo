@@ -1,6 +1,6 @@
 '''
 Instructions:
-0. Install pynput and XGboost e.g. pip install pynput xgboost
+0. Install pynput, Chrome and XGboost e.g. pip install pynput xgboost
 1. Run python dino_jump.py - This launches the training tool.
 2. Click on the pygame window thats opened to make sure windows sends the keypresses to that process.
 3. Relax the Myo arm, and with your other hand press 0 - This labels the incoming data as class 0
@@ -9,7 +9,7 @@ Instructions:
 6. Once you've gathered enough data, exit the pygame window. This saves the data in data/vals0.dat and vals1.dat
 7. If you make a mistake and wrongly classify data, delete vals0 and vals1 and regather
 8. If your happy it works, change TRAINING_MODE to False.
-9. Goto https://trex-runner.com/ and rerun dino_jump.py with TRAINING_MODE set to false.
+9. Goto chrome://dino/ in Chrome and rerun dino_jump.py with TRAINING_MODE set to false.
 10. Click in the brower to start the game and tell windows to send keypresses there
 11. Try making a fist and seeing if the dino jumps
 
@@ -25,6 +25,7 @@ from pynput.keyboard import Key, Controller
 from pyomyo import Myo, emg_mode
 from pyomyo.Classifier import Live_Classifier, MyoClassifier, EMGHandler
 from xgboost import XGBClassifier
+from live_classifiers import SVM_Classifier, LR_Classifier
 
 TRAINING_MODE = False
 
@@ -45,8 +46,17 @@ if __name__ == '__main__':
 	font = pygame.font.Font(None, 30)
 
 	# Make an ML Model to train and test with live
+
+	# SVM Example
+	#m = MyoClassifier(SVM_Classifier(), mode=emg_mode.PREPROCESSED)
+	# Logistic Regression Example
+	#m = MyoClassifier(LR_Classifier(), mode=emg_mode.PREPROCESSED, hist_len=10)
+	# Live classifier example
+	#model = GaussianNB()
+	#m = MyoClassifier(Live_Classifier(model, name="NB", color=(255,165,50)))
+
 	# XGBoost Classifier Example
-	model = XGBClassifier(eval_metric='logloss')
+	model = XGBClassifier(eval_metric='logloss', base_score=0.5, objective='binary:logistic')
 	clr = Live_Classifier(model, name="XG", color=(50,50,255))
 	m = MyoClassifier(clr, mode=emg_mode.PREPROCESSED, hist_len=10)
 

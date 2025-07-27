@@ -193,8 +193,20 @@ class Live_Classifier(Classifier):
 		self.X = X
 		self.Y = Y
 
-		if self.X.shape[0] > 0 and self.Y.shape[0] > 0: 
-			self.model.fit(self.X, self.Y)
+		# Check if we have enough data and at least 2 classes for binary classification
+		if self.X.shape[0] > 0 and self.Y.shape[0] > 0:
+			unique_classes = np.unique(self.Y)
+			if len(unique_classes) >= 2:
+				try:
+					self.model.fit(self.X, self.Y)
+				except Exception as e:
+					print(f"Warning: Could not fit model: {e}")
+					# Set model to None so classify method knows not to use it
+					self.model = None
+			else:
+				# Not enough classes for training, keep model as None
+				print(f"Warning: Only {len(unique_classes)} unique class(es) found. Need at least 2 for classification.")
+				self.model = None
 
 	def classify(self, emg):
 		if self.X.shape[0] == 0 or self.model == None:
