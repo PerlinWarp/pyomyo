@@ -20,5 +20,5 @@ m.vibrate(1)
 # Wait until it vibrates before turning it off
 time.sleep(2)
 # Turn it off
-m.power_off()
-quit()
+while True:
+    m.power_off()
