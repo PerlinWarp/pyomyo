@@ -89,3 +89,22 @@ Implements a live classifier using the k-nearest neighbors algorithm.
 Press a number from 0-9 to label incoming data as the class represented by the number.  
 Press e to delete all the data you have gathered.  
 Once two classes have been made new data is automatically classified. Labelled data is stored as a numpy array in the ``data\`` directory.
+
+## Citing
+
+If you use PyoMyo in your research, Thank you! I made PyoMyo to help researchers and make research more reproducible. 
+Please cite PyoMyo using the following:
+
+```bibtex
+@software{pyomyo,
+  author       = {Walkington, Peter},
+  title        = {PyoMyo: Python open-source Myo library},
+  url          = {https://github.com/PerlinWarp/pyomyo},
+  doi          = {10.5281/zenodo.7632303},
+  version      = {0.0.5},
+  year         = {2021}
+}
+```
+
+You can also find this in [CITATION.cff](CITATION.cff), or use GitHub's "Cite this repository" button in the sidebar to export it in APA or other formats.
+
